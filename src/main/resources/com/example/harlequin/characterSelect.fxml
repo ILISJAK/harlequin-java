@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Text?>
+<?import javafx.geometry.Pos?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.harlequin.CharacterSelectController"
+      alignment="CENTER" spacing="20" prefWidth="1920" prefHeight="1080">
+
+    <HBox alignment="CENTER" spacing="50">
+        <!-- Character 1 - Blue Circle -->
+        <StackPane fx:id="blueCircleCardStack" onMouseClicked="#selectCharacter" >
+            <Rectangle width="150" height="200" arcWidth="20" arcHeight="20" fill="WHITE"/>
+            <Circle radius="40" fill="BLUE"/>
+        </StackPane>
+
+        <!-- Character 2 - ??? -->
+        <StackPane>
+            <Rectangle width="150" height="200" arcWidth="20" arcHeight="20" fill="WHITE"/>
+            <Text text="???" style="-fx-font-size: 24;"/>
+        </StackPane>
+
+        <!-- Character 3 - ??? -->
+        <StackPane>
+            <Rectangle width="150" height="200" arcWidth="20" arcHeight="20" fill="WHITE"/>
+            <Text text="???" style="-fx-font-size: 24;"/>
+        </StackPane>
+    </HBox>
+
+</VBox>
