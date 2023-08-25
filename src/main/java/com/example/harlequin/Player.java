@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player extends Character {
+    private static final int BASE_XP_NEEDED = 100;
+    private int xpNeeded = BASE_XP_NEEDED;
     private int experience;
     private List<Weapon> weapons;
 
@@ -19,10 +21,26 @@ public class Player extends Character {
         }
     }
 
+    public void gainExperience(int xpGained) {
+        this.experience += xpGained;
+        while (this.experience >= xpNeeded){
+            levelUp();
+        }
+    }
+
+    private void levelUp(){
+        this.setLevel(this.getLevel() + 1);
+        this.experience -= xpNeeded;
+        xpNeeded = BASE_XP_NEEDED * this.getLevel();
+    }
+
     public int getExperience() {
         return experience;
     }
 
+    public int getXpNeeded() {
+        return xpNeeded;
+    }
     public List<Weapon> getWeapons() {
         return weapons;
     }

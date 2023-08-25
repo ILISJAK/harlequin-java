@@ -17,28 +17,31 @@ public class ConeAttackStrategy implements AttackStrategy {
     private Player player;  // Reference to the player to get position, direction, etc.
     private static final double CONE_RADIUS = 200;  // Example radius for the cone
     private static final double CONE_ANGLE = 60;    // Angle of the cone
-    private EnemyProvider enemyProvider;
+    private EnemyAIController enemyAIController;
 
-    public ConeAttackStrategy(Pane gamePane, Player player, EnemyProvider enemyProvider) {
+    public ConeAttackStrategy(Pane gamePane, Player player, EnemyAIController enemyAIController) {
         if (gamePane == null) {
             throw new IllegalArgumentException("Game pane cannot be null.");
         }
         if (player == null) {
             throw new IllegalArgumentException("Player cannot be null.");
         }
+        if (enemyAIController == null) {
+            throw new IllegalArgumentException("enemyAIController cannot be null.");
+        }
         this.gamePane = gamePane;
         this.player = player;
-        this.enemyProvider = enemyProvider;
+        this.enemyAIController = enemyAIController;
     }
 
     @Override
     public void executeAttack() {
-        Enemy closestEnemy = enemyProvider.getClosestEnemy();
+        Enemy closestEnemy = enemyAIController.getClosestEnemy();
         if (closestEnemy == null) {
             return;  // No enemies, so don't execute the attack
         }
 
-        Circle enemyCircle = enemyProvider.getEnemyCircle(closestEnemy);
+        Circle enemyCircle = enemyAIController.getEnemyCircle(closestEnemy);
 
         double dx = enemyCircle.getTranslateX() - player.getX();
         double dy = player.getY() - enemyCircle.getTranslateY();
@@ -67,15 +70,15 @@ public class ConeAttackStrategy implements AttackStrategy {
         pause.setOnFinished(event -> gamePane.getChildren().remove(coneAttack));
         pause.play();
 
-        for (Map.Entry<Enemy, Circle> entry : enemyProvider.getEnemies().entrySet()) {
+        for (Map.Entry<Enemy, Circle> entry : enemyAIController.getEnemies().entrySet()) {
             if (isWithinCone(entry.getValue())) {
-                enemyProvider.damageEnemy(entry.getKey(), player.getAttackPower());
+                enemyAIController.damageEnemy(entry.getKey(), player.getAttackPower());
             }
         }
         List<Enemy> enemiesToRemove = new ArrayList<>();
-        for (Map.Entry<Enemy, Circle> entry : enemyProvider.getEnemies().entrySet()) {
+        for (Map.Entry<Enemy, Circle> entry : enemyAIController.getEnemies().entrySet()) {
             if (isWithinCone(entry.getValue())) {
-                enemyProvider.damageEnemy(entry.getKey(), player.getAttackPower());
+                enemyAIController.damageEnemy(entry.getKey(), player.getAttackPower());
                 if (entry.getKey().getHealth() <= 0) {
                     enemiesToRemove.add(entry.getKey());
                 }
@@ -83,7 +86,7 @@ public class ConeAttackStrategy implements AttackStrategy {
         }
 
         for (Enemy enemy : enemiesToRemove) {
-            enemyProvider.getEnemies().remove(enemy);
+            enemyAIController.getEnemies().remove(enemy);
             ((Pane) player.getSprite().getParent()).getChildren().remove(enemy.getSprite());
         }
     }

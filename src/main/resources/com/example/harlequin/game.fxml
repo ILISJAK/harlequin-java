@@ -15,6 +15,9 @@
     <!-- Actual health bar -->
     <Rectangle fx:id="healthBar" fill="GREEN" layoutX="860.0" layoutY="1040.0" width="200" height="10"/>
     <Label fx:id="playerLevelLabel" layoutX="1700" layoutY="20" text="Player Level: 1" style="-fx-font-size: 24;"/>
-    <Circle fx:id="playerSprite" fill="BLUE" radius="15"/>
+    <Label fx:id="xpLabel" layoutX="1700" layoutY="50" text="XP: 0/100" style="-fx-font-size: 24;"/>
+    <Label fx:id="waveLabel" layoutX="1700" layoutY="70" text="XP: 0/100" style="-fx-font-size: 24; "/>
+    <Label fx:id="timerLabel" layoutX="1650" layoutY="100" text="XP: 0/100" style="-fx-font-size: 24; "/>
+
 </AnchorPane>
 
