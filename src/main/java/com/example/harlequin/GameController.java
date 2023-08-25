@@ -25,14 +25,8 @@ public class GameController {
     @FXML
     private Label playerLevelLabel, xpLabel, waveLabel, timerLabel;
     private Player player;
-    private Timeline enemySpawnTimeline, waveTimeline;
     private EnemyAIController enemyAIController;
-
-    private int currentWave = 1;
-    private int timeRemainingInWave;
-    private static final int WAVE_DURATION = 10;
-    private static final double INITIAL_SPAWN_INTERVAL = 1;
-    private double spawnInterval = INITIAL_SPAWN_INTERVAL;
+    private GameStateManager gameStateManager;
 
     private static final double SCREEN_WIDTH = Screen.getPrimary().getBounds().getWidth();
     private static final double SCREEN_HEIGHT = Screen.getPrimary().getBounds().getHeight();
@@ -68,43 +62,12 @@ public class GameController {
             player.attack();
         }
     };
-    private void startWave() {
-        timeRemainingInWave = WAVE_DURATION;
-        updateTimerLabel();
-        enemySpawnTimeline.playFromStart();
-
-        waveTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), event -> {
-                    timeRemainingInWave--;
-                    updateTimerLabel();
-                    if (timeRemainingInWave <= 0) {
-                        endWave();
-                    }
-                })
-        );
-        waveTimeline.setCycleCount(Timeline.INDEFINITE);
-        waveTimeline.play();
-
-        updateWaveLabel();
-    }
-    private void endWave() {
-        enemySpawnTimeline.stop();
-        waveTimeline.stop();
-
-        // Optional: Add some delay or notification before the next wave starts
-        PauseTransition delay = new PauseTransition(Duration.seconds(5));
-        delay.setOnFinished(event -> {
-            currentWave++;
-            startWave();
-        });
-        delay.play();
-    }
-    private void updateWaveLabel() {
-        waveLabel.setText("Wave: " + currentWave);
+    public void updateWaveLabel() {
+        waveLabel.setText("Wave: " + gameStateManager.getCurrentWave());
     }
 
-    private void updateTimerLabel() {
-        timerLabel.setText("Time Remaining: " + timeRemainingInWave + "s");
+    public void updateTimerLabel() {
+        timerLabel.setText("Time Remaining: " + gameStateManager.getTimeRemainingInWave() + "s");
     }
     private void updateHealthBar() {
         double percentageHealth = (double) player.getHealth() / player.getMaxHealth();
@@ -136,13 +99,11 @@ public class GameController {
         });
         fadeTransition.play();
     }
-    private void updatePlayerLevelLabel() {
-        playerLevelLabel.setText("Player Level: " + player.getLevel());
-    }
+
     private void checkGameOver() {
         if (player.getHealth() <= 0) {
             gameLoop.stop();
-            enemySpawnTimeline.stop();
+            gameStateManager.stopEnemySpawnTimeline();
 
             Label gameOverLabel = new Label("GAME OVER");
             gameOverLabel.setStyle("-fx-text-fill: red; -fx-font-size: 48;");
@@ -153,12 +114,15 @@ public class GameController {
             gamePane.requestLayout();
         }
     }
-    private void updateXpLabel(){
-        xpLabel.setText("XP: " + player.getExperience() + "/" + player.getXpNeeded());
-    }
     public void updatePlayerState(){
         updateXpLabel();
         updatePlayerLevelLabel();
+    }
+    private void updateXpLabel(){
+        xpLabel.setText("XP: " + player.getExperience() + "/" + player.getXpNeeded());
+    }
+    private void updatePlayerLevelLabel() {
+        playerLevelLabel.setText("Player Level: " + player.getLevel());
     }
     public void initialize() {
         player = new Player("Hero", 1, 250, 15, 5, 2, 50);
@@ -167,7 +131,8 @@ public class GameController {
         player.getSprite().setTranslateY(540.0); // Half of 1080
         updatePlayerState();
 
-        enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), currentWave, screenWidth, screenHeight, this);
+        gameStateManager = new GameStateManager(this);
+        enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), gameStateManager.getCurrentWave(), screenWidth, screenHeight, this);
 
         Weapon coneWeapon = new Weapon("ConeTest", "Conetest", 10, new ConeAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController));
         Weapon projectileWeapon = new Weapon("ProjectileTest", "ProjectileTest", 10, new ProjectileAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController));
@@ -198,19 +163,18 @@ public class GameController {
         delay.play();
 
         gameLoop.start();
-
-        enemySpawnTimeline = new Timeline(new KeyFrame(Duration.seconds(((double) spawnInterval / currentWave)), event -> enemyAIController.spawnEnemy())); // Spawns an enemy every SPAWN_INTERVAL seconds
-        enemySpawnTimeline.setCycleCount(Timeline.INDEFINITE); // Keeps looping forever
-
         // Initialize wave related labels and start the first wave
         updateWaveLabel();
-        startWave();
+        gameStateManager.startWave();
     }
-
     public void handleKeyPressed(KeyEvent event) {
         activeKeys.add(event.getCode());
     }
     public void handleKeyReleased(KeyEvent event) {
         activeKeys.remove(event.getCode());
+    }
+
+    public EnemyAIController getEnemyAIController() {
+        return enemyAIController;
     }
 }
