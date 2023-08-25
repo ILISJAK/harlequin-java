@@ -170,7 +170,9 @@ public class GameController {
         enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), currentWave, screenWidth, screenHeight, this);
 
         Weapon coneWeapon = new Weapon("ConeTest", "Conetest", 10, new ConeAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController));
-        player.setWeapons(Arrays.asList(coneWeapon));
+        Weapon projectileWeapon = new Weapon("ProjectileTest", "ProjectileTest", 10, new ProjectileAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController));
+        projectileWeapon.setCOOLDOWN_DURATION(50);
+        player.setWeapons(Arrays.asList(coneWeapon, projectileWeapon));
 
         System.out.println("After Initialization: ");
         System.out.println("Player object: " + player);

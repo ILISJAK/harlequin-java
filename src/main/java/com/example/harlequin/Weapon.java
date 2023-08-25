@@ -2,7 +2,7 @@ package com.example.harlequin;
 
 public class Weapon extends Item {
     private final AttackStrategy attackStrategy;
-    private static final long COOLDOWN_DURATION = 1000;  // 1 second for example, adjust as needed
+    private long COOLDOWN_DURATION = 1000;  // 1 second for example, adjust as needed
     private long lastAttackTime = 0;  // Time of the last attack
     private final int damage;  // The damage the weapon can deal
 
@@ -42,5 +42,11 @@ public class Weapon extends Item {
         return damage;
     }
 
-    // ... Additional getters/setters or methods as required ...
+    public long getCOOLDOWN_DURATION() {
+        return COOLDOWN_DURATION;
+    }
+
+    public void setCOOLDOWN_DURATION(long COOLDOWN_DURATION) {
+        this.COOLDOWN_DURATION = COOLDOWN_DURATION;
+    }
 }
