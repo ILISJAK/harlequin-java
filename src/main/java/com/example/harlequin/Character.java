@@ -3,18 +3,24 @@ package com.example.harlequin;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
+import java.util.Random;
+
 public abstract class Character {
     protected String name;
     protected int level;
     protected int health;
     protected int maxHealth;
-    protected int attackPower;
-    protected int defense;
+    protected double attackPower;
+    protected double defense;
     protected double movementSpeed;
+    protected double critChance; // chance to land a critical hit
+    protected double critMultiplier; // multiplier for critical hit damage
+    private final Random random = new Random();
+    protected boolean lastAttackWasCritical;
 
     protected Circle sprite; // graphical representation
 
-    public Character(String name, int level, int health, int attackPower, int defense, double movementSpeed, double radius) {
+    public Character(String name, int level, int health, double attackPower, double defense, double movementSpeed, double radius, double critChance, double critMultiplier) {
         setName(name);
         setLevel(level);
         setMaxHealth(health);
@@ -22,26 +28,48 @@ public abstract class Character {
         setAttackPower(attackPower);
         setDefense(defense);
         setMovementSpeed(movementSpeed);
-
+        setCritChance(critChance);
+        setCritMultiplier(critMultiplier);
         // Initialize the sprite with the given radius and default color (this can be changed as needed)
         this.sprite = new Circle(radius);
         this.sprite.setFill(Color.BLUE);
     }
 
-    // Get damage to be dealt based on attack and defense values
-    public int getDamage(Character opponent) {
-        int damage = this.attackPower - opponent.defense;
-        return Math.max(damage, 0); // Ensure damage is non-negative
+    public double getDamage(Character opponent) {
+        // Get a random factor between 0.8 and 1.2 (you can adjust this range as needed)
+        double randomFactor = 0.9 + (1.1 - 0.9) * random.nextDouble();
+
+        // Apply the random factor to the attack power
+        int adjustedAttackPower = (int) (this.attackPower * randomFactor);
+
+        double baseDamage = adjustedAttackPower - opponent.defense;
+        baseDamage = Math.max(baseDamage, 0); // Ensure damage is non-negative
+
+        // Determine if this attack is a critical hit
+        boolean isCriticalHit = random.nextDouble() < this.critChance;
+
+        // If it's a critical hit, multiply the damage by the critical hit multiplier
+        double finalDamage = isCriticalHit ? (int) (baseDamage * this.critMultiplier) : baseDamage;
+
+        // Update lastAttackWasCritical
+        this.lastAttackWasCritical = isCriticalHit;
+
+        return finalDamage;
     }
 
-    public void takeDamage(int damage) {
+    public void takeDamage(double damage) {
+        System.out.println("Taking damage: " + damage);
         this.health -= damage;
         if (this.health < 0) {
             this.health = 0; // Ensure health doesn't go negative
         }
     }
+    public boolean wasLastAttackCritical() {
+        return lastAttackWasCritical;
+    }
+
     // setters
-    public void setAttackPower(int attackPower) {
+    public void setAttackPower(double attackPower) {
         this.attackPower = attackPower;
     }
 
@@ -49,7 +77,7 @@ public abstract class Character {
         this.name = name;
     }
 
-    public void setDefense(int defense) {
+    public void setDefense(double defense) {
         this.defense = defense;
     }
 
@@ -77,6 +105,16 @@ public abstract class Character {
     public void setY(double y) {
         sprite.setTranslateY(y);
     }
+    public void setCritChance(double critChance) {
+        this.critChance = critChance;
+    }
+    public void setCritMultiplier(double critMultiplier) {
+        this.critMultiplier = critMultiplier;
+    }
+    public void setLastAttackWasCritical(boolean lastAttackWasCritical) {
+        this.lastAttackWasCritical = lastAttackWasCritical;
+    }
+
     // getters
     public Circle getSprite() {
         return sprite;
@@ -87,10 +125,10 @@ public abstract class Character {
     public double getY() {
         return sprite.getTranslateY();
     }
-    public int getAttackPower() {
+    public double getAttackPower() {
         return attackPower;
     }
-    public int getDefense() {
+    public double getDefense() {
         return defense;
     }
     public int getHealth() {
@@ -105,4 +143,11 @@ public abstract class Character {
     public int getMaxHealth() {
         return maxHealth;
     }
+    public double getCritChance() {
+        return critChance;
+    }
+    public double getCritMultiplier() {
+        return critMultiplier;
+    }
+
 }

@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ProjectileAttackStrategy implements AttackStrategy {
@@ -60,7 +61,8 @@ public class ProjectileAttackStrategy implements AttackStrategy {
                     projectile.setTranslateY(projectile.getTranslateY() + normalizedDy * PROJECTILE_SPEED);
 
                     // Check collision with enemies
-                    for (Map.Entry<Enemy, Circle> entry : enemyAIController.getEnemies().entrySet()) {
+                    Map<Enemy, Circle> enemiesCopy = new HashMap<>(enemyAIController.getEnemies());
+                    for (Map.Entry<Enemy, Circle> entry : enemiesCopy.entrySet()) {
                         if (projectile.getBoundsInParent().intersects(entry.getValue().getBoundsInParent())) {
                             enemyAIController.damageEnemy(entry.getKey(), player.getAttackPower());
                             gamePane.getChildren().remove(projectile);

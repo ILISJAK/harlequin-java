@@ -41,10 +41,21 @@ public class EnemyAIController implements EnemyProvider {
             moveEnemyTowardsPlayer(entry.getKey(), entry.getValue());
         }
     }
-
     public void spawnEnemy() {
-        Enemy enemy = new Enemy("Circle", currentWave, 30*currentWave, 25*currentWave, 1, 1.5, 50);
+        int baseHealth = 30;
+        int baseAttack = 25;
+        int baseDefense = 1;
+        double baseSpeed = 1.5;
+        double baseRadius = 50;
 
+        int k = 5;  // adjust this value to change the scaling
+        int health = (int) (baseHealth + (gameController.getGameStateManager().getCurrentWave()*k));
+        int attack = (int) (baseAttack + (gameController.getGameStateManager().getCurrentWave()*k));
+        int defense = (int) (baseDefense + (gameController.getGameStateManager().getCurrentWave()*k));
+        double speed = baseSpeed;
+        double radius = baseRadius;
+
+        Enemy enemy = new Enemy("Circle", 20, health, attack, defense, speed, radius, 0.1,1.2);
         double speedVariation = 0.2;  // 20% variation
         enemy.setMovementSpeed(enemy.getMovementSpeed() * (1 + Math.random() * speedVariation - speedVariation / 2));
 
@@ -144,9 +155,15 @@ public class EnemyAIController implements EnemyProvider {
         }
         // Collision check with player
         if (areCirclesColliding(enemyCircle, player.getSprite()) && !isAttackCooldown) {
-            int damageDealt = enemy.getDamage(player);
+            System.out.println("Enemy and player are colliding.");
+            System.out.println("Attack Cooldown Status: " + isAttackCooldown);
+            double damageDealt = enemy.getDamage(player);
             EnemyCollisionEvent event = new EnemyCollisionEvent(damageDealt);
-            gamePane.fireEvent(event);
+            System.out.println("Event source: " + event.getSource());
+            System.out.println("Event target: " + event.getTarget());
+            System.out.println("Firing the EnemyCollisionEvent with damage: " + damageDealt);
+            System.out.println("Player health: " + player.getHealth());
+            gameController.getGamePane().fireEvent(event);
             // Move enemy back
             enemyCircle.setTranslateX(enemyCircle.getTranslateX() - moveX);
             enemyCircle.setTranslateY(enemyCircle.getTranslateY() - moveY);
@@ -201,7 +218,7 @@ public class EnemyAIController implements EnemyProvider {
         return enemyMap.get(enemy);
     }
     @Override
-    public void damageEnemy(Enemy enemy, int damageAmount) {
+    public void damageEnemy(Enemy enemy, double damageAmount) {
         enemy.takeDamage(damageAmount);
         enemy.getSprite().setBlendMode(BlendMode.DIFFERENCE);
         PauseTransition pause = new PauseTransition(Duration.millis(100));

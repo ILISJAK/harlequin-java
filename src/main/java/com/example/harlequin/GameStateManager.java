@@ -7,7 +7,7 @@ import javafx.util.Duration;
 public class GameStateManager {
     private int currentWave = 1;
     private int timeRemainingInWave;
-    private final int WAVE_DURATION = 10;
+    private final int WAVE_DURATION = 2;
     private final double INITIAL_SPAWN_INTERVAL = 1;
     private double spawnInterval = INITIAL_SPAWN_INTERVAL;
 

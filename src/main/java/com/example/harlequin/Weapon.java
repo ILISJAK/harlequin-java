@@ -1,13 +1,15 @@
 package com.example.harlequin;
 
+import javafx.scene.image.Image;
+
 public class Weapon extends Item {
     private final AttackStrategy attackStrategy;
     private long COOLDOWN_DURATION = 1000;  // 1 second for example, adjust as needed
     private long lastAttackTime = 0;  // Time of the last attack
     private final int damage;  // The damage the weapon can deal
 
-    public Weapon(String name, String description, int damage, AttackStrategy attackStrategy) {
-        super(name, description);
+    public Weapon(String name, String description, int damage, AttackStrategy attackStrategy, Runnable effect, int maxLevel, Image image) {
+        super(name, description, effect, maxLevel, image);
         this.damage = damage;
         this.attackStrategy = attackStrategy;
     }

@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.control.Label?>
-<AnchorPane style="-fx-background-color: darkgrey;" focusTraversable="true"
+<?import javafx.scene.control.Button?>
+<AnchorPane fx:id="gamePane" style="-fx-background-color: darkgrey;" focusTraversable="true"
             prefHeight="1080.0" prefWidth="1920.0"
             onKeyPressed="#handleKeyPressed" onKeyReleased="#handleKeyReleased"
             xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.example.harlequin.GameController">
 
-    <!-- Health bar background/outline -->
-    <Rectangle fx:id="healthBarBackground" fill="BLACK" layoutX="860.0" layoutY="1040.0" width="200" height="10"/>
-    <!-- Actual health bar -->
-    <Rectangle fx:id="healthBar" fill="GREEN" layoutX="860.0" layoutY="1040.0" width="200" height="10"/>
-    <Label fx:id="playerLevelLabel" layoutX="1700" layoutY="20" text="Player Level: 1" style="-fx-font-size: 24;"/>
-    <Label fx:id="xpLabel" layoutX="1700" layoutY="50" text="XP: 0/100" style="-fx-font-size: 24;"/>
-    <Label fx:id="waveLabel" layoutX="1700" layoutY="70" text="XP: 0/100" style="-fx-font-size: 24; "/>
-    <Label fx:id="timerLabel" layoutX="1650" layoutY="100" text="XP: 0/100" style="-fx-font-size: 24; "/>
+    <Rectangle fx:id="healthBarBackground" fill="BLACK" width="200" height="10"/>
+    <Rectangle fx:id="healthBar" fill="GREEN" width="200" height="10"/>
+    <Label fx:id="playerLevelLabel" text="Player Level: 1" style="-fx-font-size: 24;"/>
+    <Label fx:id="xpLabel" text="XP: 0/100" style="-fx-font-size: 24;"/>
+    <Label fx:id="waveLabel" text="Wave: 1" style="-fx-font-size: 24;"/>
+    <Label fx:id="timerLabel" text="Time Remaining: 60s" style="-fx-font-size: 24;"/>
 
 </AnchorPane>
 

@@ -8,5 +8,5 @@ public interface EnemyProvider {
     Map<Enemy, Circle> getEnemies();
     Enemy getClosestEnemy();
     Circle getEnemyCircle(Enemy enemy);
-    void damageEnemy(Enemy enemy, int damageAmount);
+    void damageEnemy(Enemy enemy, double damageAmount);
 }

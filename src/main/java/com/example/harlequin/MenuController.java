@@ -3,10 +3,10 @@ package com.example.harlequin;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+
 import java.io.IOException;
 
 public class MenuController {
@@ -20,11 +20,8 @@ public class MenuController {
     @FXML
     public void startGame(ActionEvent event) {
         try {
-            VBox root = FXMLLoader.load(getClass().getResource("characterSelect.fxml"));
-            Stage stage = (Stage) startButton.getScene().getWindow();
-            Scene scene = new Scene(root, 1920, 1080);
-            stage.setScene(scene);
-            stage.show();
+            Parent root = FXMLLoader.load(getClass().getResource("characterSelect.fxml"));
+            startButton.getScene().setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -32,7 +29,6 @@ public class MenuController {
 
     @FXML
     public void exitGame(ActionEvent event) {
-        Stage stage = (Stage) exitButton.getScene().getWindow();
-        stage.close();
+        System.exit(0);
     }
 }

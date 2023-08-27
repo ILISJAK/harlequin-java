@@ -5,14 +5,14 @@ import javafx.event.EventType;
 
 public class EnemyCollisionEvent extends Event {
     public static final EventType<EnemyCollisionEvent> ENEMY_COLLIDED = new EventType<>(ANY, "ENEMY_COLLIDED");
-    private final int damageDealt;
+    private final double damageDealt;
 
-    public EnemyCollisionEvent(int damageDealt) {
+    public EnemyCollisionEvent(double damageDealt) {
         super(ENEMY_COLLIDED);
         this.damageDealt = damageDealt;
     }
 
-    public int getDamageDealt() {
+    public double getDamageDealt() {
         return damageDealt;
     }
 }
