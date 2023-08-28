@@ -69,5 +69,6 @@ public class Item implements Upgrade {
     public void setImage(Image image) {
         this.image = image;
     }
+    
 }
 

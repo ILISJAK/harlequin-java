@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class GameApplication extends Application {
@@ -31,6 +32,7 @@ public class GameApplication extends Application {
     }
 
     public static void main(String[] args) {
+        Font.loadFont(GameApplication.class.getResource("/com/example/harlequin/font/Pixeled.ttf").toExternalForm(), 20);
         System.out.println("Launching game application...");
         launch(args);
     }

@@ -12,10 +12,10 @@
 
     <Rectangle fx:id="healthBarBackground" fill="BLACK" width="200" height="10"/>
     <Rectangle fx:id="healthBar" fill="GREEN" width="200" height="10"/>
-    <Label fx:id="playerLevelLabel" text="Player Level: 1" style="-fx-font-size: 24;"/>
-    <Label fx:id="xpLabel" text="XP: 0/100" style="-fx-font-size: 24;"/>
-    <Label fx:id="waveLabel" text="Wave: 1" style="-fx-font-size: 24;"/>
-    <Label fx:id="timerLabel" text="Time Remaining: 60s" style="-fx-font-size: 24;"/>
+    <Label fx:id="playerLevelLabel" text="Player Level: 1"/>
+    <Label fx:id="xpLabel" text="XP: 0/100"/>
+    <Label fx:id="waveLabel" text="Wave: 1"/>
+    <Label fx:id="timerLabel" text="Time Remaining: 60s"/>
 
 </AnchorPane>
 

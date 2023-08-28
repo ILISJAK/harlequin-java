@@ -9,19 +9,19 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.stage.Screen;
 
+import java.io.InputStream;
 import java.util.*;
 
 import javafx.scene.control.Label;
@@ -34,6 +34,7 @@ public class GameController {
     private Rectangle healthBar, healthBarBackground;
     @FXML
     private Label playerLevelLabel, xpLabel, waveLabel, timerLabel, healthLabel;
+
     private Player player;
     private EnemyAIController enemyAIController;
     private GameStateManager gameStateManager;
@@ -42,6 +43,8 @@ public class GameController {
     private List<Item> allUpgrades;
     private VBox upgradePane;
     private Rectangle background;
+
+    Font customFont;
 
     private static final double SCREEN_WIDTH = Screen.getPrimary().getBounds().getWidth();
     private static final double SCREEN_HEIGHT = Screen.getPrimary().getBounds().getHeight();
@@ -100,33 +103,40 @@ public class GameController {
         // Create a new pane to hold the upgrade options
         upgradePane = new VBox(10);
         upgradePane.setAlignment(Pos.CENTER);
-        upgradePane.setStyle("-fx-background-color: #FFFFFF; -fx-padding: 20; -fx-border-color: black; -fx-border-width: 2;");
+        upgradePane.setStyle("-fx-background-color: #B0C4DE; -fx-padding: 20; -fx-border-color: black; -fx-border-width: 2;");
+
+        // Add header
+        Label header = new Label("Level up!");
+        header.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 24;");
+        upgradePane.getChildren().add(header);
 
         // Create a clickable area for each available upgrade
         for (Item upgrade : availableUpgrades) {
             ImageView imageView = new ImageView(upgrade.getImage());
-            imageView.setFitWidth(80);  // adjust the size as needed
-            imageView.setFitHeight(80);  // adjust the size as needed
+            imageView.setFitWidth(100);  // adjust the size as needed
+            imageView.setFitHeight(100);  // adjust the size as needed
 
             Label label = new Label(upgrade.getName() + "\n" + upgrade.getDescription());
-            label.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: black; -fx-border-width: 2; -fx-font-size: 20;");
+            label.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 20; -fx-padding: 10;");
             label.setAlignment(Pos.CENTER_LEFT);
-            label.setPadding(new Insets(10));
-            VBox.setMargin(label, new Insets(5));
+            label.setPrefWidth(800);  // adjust the width as needed
             label.setMouseTransparent(true);
 
             HBox hbox = new HBox(10);  // 10 is the spacing between the children
+            hbox.setPrefWidth(upgradePane.getPrefWidth());
             hbox.setAlignment(Pos.CENTER_LEFT);
             hbox.setPadding(new Insets(5));
             VBox.setMargin(hbox, new Insets(5));
-
             hbox.getChildren().addAll(imageView, label);
+            hbox.setStyle("-fx-background-color: #DCCBC7;");
 
             hbox.setOnMouseEntered(event -> {
-                label.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: darkgray; -fx-border-width: 2; -fx-font-size: 20;");
+                hbox.setStyle("-fx-background-color: #D3D3D3; -fx-border-color: darkgray; -fx-border-width: 2;");
+                imageView.setEffect(new Glow(0.4));
             });
             hbox.setOnMouseExited(event -> {
-                label.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: black; -fx-border-width: 2; -fx-font-size: 20;");
+                hbox.setStyle("-fx-background-color: #DCCBC7; -fx-border-color: black; -fx-border-width: 2;");
+                imageView.setEffect(null);
             });
 
             hbox.setOnMouseClicked(event -> {
@@ -143,6 +153,11 @@ public class GameController {
             upgradePane.getChildren().add(hbox);
         }
 
+        // Add footer
+        Label footer = new Label("Increase your luck for a chance to get 4 upgrades.");
+        footer.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 24;");
+        upgradePane.getChildren().add(footer);
+
         // Add the upgrade pane to the game pane
         gamePane.getChildren().add(upgradePane);
 
@@ -155,7 +170,6 @@ public class GameController {
         // Pause the game
         pauseGame();
     }
-
 
     public void updateWaveLabel() {
         waveLabel.setText("Wave: " + gameStateManager.getCurrentWave());
@@ -182,6 +196,7 @@ public class GameController {
     private void displayDamage(double damage) {
         Label damageLabel = new Label("-" + String.valueOf(damage));
         damageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 24;");
+        damageLabel.setFont(Font.font("Pixeled", 24));
         damageLabel.setTranslateX(player.getSprite().getTranslateX());
         damageLabel.setTranslateY(player.getSprite().getTranslateY() - 20); // Slightly above the player
 
@@ -246,87 +261,106 @@ public class GameController {
         playerLevelLabel.setText("Player Level: " + player.getLevel());
     }
     public void initialize() {
-        gamePane.setPrefSize(screenWidth, screenHeight);
+        try {
+            if (gamePane == null) {
+                System.err.println("gamePane is null.");
+                return;
+            }
+            gamePane.setPrefSize(screenWidth, screenHeight);
 
-        // Adjust the layout of the UI elements
-        healthBarBackground.setLayoutX(screenWidth / 2 - 100);  // Center the health bar
-        healthBarBackground.setLayoutY(screenHeight - 20);  // 20 pixels from the bottom
-        healthBar.setLayoutX(healthBarBackground.getLayoutX());
-        healthBar.setLayoutY(healthBarBackground.getLayoutY());
-        playerLevelLabel.setLayoutX(screenWidth - 220);
-        playerLevelLabel.setLayoutY(20);
-        xpLabel.setLayoutX(screenWidth - 220);
-        xpLabel.setLayoutY(50);
-        waveLabel.setLayoutX(screenWidth - 220);
-        waveLabel.setLayoutY(80);
-        timerLabel.setLayoutX(screenWidth - 220);
-        timerLabel.setLayoutY(110);
+            customFont = Font.loadFont(getClass().getResource("/com/example/harlequin/font/Pixeled.ttf").toExternalForm(), 24);
 
-        try{
-            allUpgrades = Arrays.asList(
-                    new Item("Joker", "Increases critical strike chance by 10%", () -> player.setCritChance(player.getCritChance() + 0.1), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/card-joker.png"))),
-                    new Item("Cloak", "Movement speed increased by 5%", () -> player.setMovementSpeed(player.getMovementSpeed() * 1.05), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/wing-cloak.png"))),
-                    new Item("Holy Grail", "Strength increased by 10%", () -> player.setAttackPower(player.getAttackPower() * 1.10), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/holy-grail.png"))),
-                    new Item("Mask", "Increase defense by 5%", () -> player.setDefense(player.getDefense() * 1.05), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/duality-mask.png"))),
-                    new Item("Lobster", "Set critical damage multiplier to 2.2", () -> player.setCritMultiplier(player.getCritMultiplier() + 0.2), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")))
-            );
-        } catch (IllegalArgumentException e) {
-            System.err.println(e.getMessage());
+            if (customFont == null) {
+                System.err.println("Custom font is null!");
+            } else {
+                playerLevelLabel.setFont(customFont);
+                xpLabel.setFont(customFont);
+                waveLabel.setFont(customFont);
+                timerLabel.setFont(customFont);
+            }
+
+            // Adjust the layout of the UI elements
+            healthBarBackground.setLayoutX(screenWidth / 2 - 100);  // Center the health bar
+            healthBarBackground.setLayoutY(screenHeight - 20);  // 20 pixels from the bottom
+            healthBar.setLayoutX(healthBarBackground.getLayoutX());
+            healthBar.setLayoutY(healthBarBackground.getLayoutY());
+            playerLevelLabel.setLayoutX(screenWidth - 220);
+            playerLevelLabel.setLayoutY(20);
+            xpLabel.setLayoutX(screenWidth - 220);
+            xpLabel.setLayoutY(50);
+            waveLabel.setLayoutX(screenWidth - 220);
+            waveLabel.setLayoutY(80);
+            timerLabel.setLayoutX(screenWidth - 220);
+            timerLabel.setLayoutY(110);
+
+            try {
+                allUpgrades = Arrays.asList(
+                        new Item("Joker", "Increases critical strike chance by 10%", () -> player.setCritChance(player.getCritChance() + 0.1), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/card-joker.png"))),
+                        new Item("Cloak", "Movement speed increased by 5%", () -> player.setMovementSpeed(player.getMovementSpeed() * 1.05), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/wing-cloak.png"))),
+                        new Item("Holy Grail", "Strength increased by 10%", () -> player.setAttackPower(player.getAttackPower() * 1.10), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/holy-grail.png"))),
+                        new Item("Mask", "Increase defense by 5%", () -> player.setDefense(player.getDefense() * 1.05), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/duality-mask.png"))),
+                        new Item("Lobster", "Set critical damage multiplier to 2.2", () -> player.setCritMultiplier(player.getCritMultiplier() + 0.2), 5, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")))
+                );
+            } catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage());
+            }
+
+            player = new Player("Hero", 1, 100, 5, 15, 2, 50, 0.1, 2);
+            ((Pane) healthBar.getParent()).getChildren().add(player.getSprite());
+            player.getSprite().setTranslateX(screenWidth / 2);
+            player.getSprite().setTranslateY(screenHeight / 2);
+
+            Label healthLabel = new Label();
+            healthLabel.setLayoutX(healthBar.getLayoutX() + 20); // adjust as needed
+            healthLabel.setLayoutY(healthBar.getLayoutY() - 20); // adjust as needed
+            healthLabel.setStyle("-fx-font-size: 18;");
+            ((Pane) healthBar.getParent()).getChildren().add(healthLabel);
+
+            healthBar.setUserData(healthLabel);
+
+            updatePlayerState();
+
+            gameStateManager = new GameStateManager(this);
+            enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), gameStateManager.getCurrentWave(), screenWidth, screenHeight, this);
+
+            Weapon coneWeapon = new Weapon("ConeTest", "Conetest", 10, new ConeAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), () -> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
+            Weapon projectileWeapon = new Weapon("ProjectileTest", "ProjectileTest", 10, new ProjectileAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), () -> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
+            projectileWeapon.setCOOLDOWN_DURATION(50);
+            player.setWeapons(Arrays.asList(coneWeapon, projectileWeapon));
+
+            System.out.println("After Initialization: ");
+            System.out.println("Player object: " + player);
+            System.out.println("EnemyAIController object: " + enemyAIController);
+
+            // Add the handler to the gamePane
+            if (gamePane != null) {
+                gamePane.addEventHandler(EnemyCollisionEvent.ENEMY_COLLIDED, collisionEvent -> {
+                    System.out.println("Damage from event: " + collisionEvent.getDamageDealt());
+                    System.out.println("Player object: " + player);
+                    System.out.println("EnemyAIController object: " + enemyAIController);
+                    if (player != null) {
+                        System.out.println("Player health before taking damage: " + player.getHealth());
+                        player.takeDamage(collisionEvent.getDamageDealt());
+                        System.out.println("Player health after taking damage: " + player.getHealth());
+                        updateHealthBar();
+                        displayDamage(collisionEvent.getDamageDealt());
+                    }
+                    if (enemyAIController != null) {
+                        enemyAIController.startAttackCooldown();
+                    }
+                    checkGameOver();
+                });
+            } else {
+                System.out.println("gamePane is null.");
+            }
+
+            gameLoop.start();
+            // Initialize wave-related labels and start the first wave
+            updateWaveLabel();
+            gameStateManager.startWave();
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-
-        player = new Player("Hero", 1, 100, 5, 15, 2, 50, 0.1, 2);
-        ((Pane) healthBar.getParent()).getChildren().add(player.getSprite());
-        player.getSprite().setTranslateX(screenWidth / 2);
-        player.getSprite().setTranslateY(screenHeight / 2);
-
-        Label healthLabel = new Label();
-        healthLabel.setLayoutX(healthBar.getLayoutX() + 20); // adjust as needed
-        healthLabel.setLayoutY(healthBar.getLayoutY() - 20); // adjust as needed
-        healthLabel.setStyle("-fx-font-size: 18;");
-        ((Pane) healthBar.getParent()).getChildren().add(healthLabel);
-
-        healthBar.setUserData(healthLabel);
-
-        updatePlayerState();
-
-        gameStateManager = new GameStateManager(this);
-        enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), gameStateManager.getCurrentWave(), screenWidth, screenHeight, this);
-
-        Weapon coneWeapon = new Weapon("ConeTest", "Conetest", 10, new ConeAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), () -> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
-        Weapon projectileWeapon = new Weapon("ProjectileTest", "ProjectileTest", 10, new ProjectileAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), ()-> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
-        projectileWeapon.setCOOLDOWN_DURATION(50);
-        player.setWeapons(Arrays.asList(coneWeapon, projectileWeapon));
-
-        System.out.println("After Initialization: ");
-        System.out.println("Player object: " + player);
-        System.out.println("EnemyAIController object: " + enemyAIController);
-
-        // Add the handler to the gamePane
-        if (gamePane != null) {
-            gamePane.addEventHandler(EnemyCollisionEvent.ENEMY_COLLIDED, collisionEvent -> {
-                System.out.println("Damage from event: " + collisionEvent.getDamageDealt());
-                System.out.println("Player object: " + player);
-                System.out.println("EnemyAIController object: " + enemyAIController);
-                if (player != null) {
-                    System.out.println("Player health before taking damage: " + player.getHealth());
-                    player.takeDamage(collisionEvent.getDamageDealt());
-                    System.out.println("Player health after taking damage: " + player.getHealth());
-                    updateHealthBar();
-                    displayDamage(collisionEvent.getDamageDealt());
-                }
-                if (enemyAIController != null) {
-                    enemyAIController.startAttackCooldown();
-                }
-                checkGameOver();
-            });
-        } else {
-            System.out.println("gamePane is null.");
-        }
-
-        gameLoop.start();
-        // Initialize wave-related labels and start the first wave
-        updateWaveLabel();
-        gameStateManager.startWave();
     }
 
     public void handleKeyPressed(KeyEvent event) {

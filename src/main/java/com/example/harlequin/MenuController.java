@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 
 import java.io.IOException;
 
@@ -16,6 +17,18 @@ public class MenuController {
 
     @FXML
     private Button exitButton;
+
+    @FXML
+    public void initialize() {
+        Font customFont = Font.loadFont(getClass().getResource("/com/example/harlequin/font/Pixeled.ttf").toExternalForm(), 20);
+
+        if (customFont == null) {
+            System.err.println("Custom font is null!");
+        } else {
+            startButton.setFont(customFont);
+            exitButton.setFont(customFont);
+        }
+    }
 
     @FXML
     public void startGame(ActionEvent event) {
