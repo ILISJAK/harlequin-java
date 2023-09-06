@@ -8,7 +8,7 @@ public class GameStateManager {
     private int currentWave = 1;
     private int timeRemainingInWave;
     private final int WAVE_DURATION = 2;
-    private final double INITIAL_SPAWN_INTERVAL = 1;
+    private final double INITIAL_SPAWN_INTERVAL = 0.25;
     private double spawnInterval = INITIAL_SPAWN_INTERVAL;
 
     private Label playerLevelLabel, xpLabel, waveLabel, timerLabel;
@@ -81,7 +81,10 @@ public class GameStateManager {
     }
 
     public void stopEnemySpawnTimeline() {
-        enemySpawnTimeline.stop();
+        enemySpawnTimeline.pause();
+    }
+    public void resumeEnemySpawnTimeline() {
+        enemySpawnTimeline.play();
     }
 
     public int getCurrentWave() {

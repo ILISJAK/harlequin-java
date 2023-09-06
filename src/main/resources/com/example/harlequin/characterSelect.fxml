@@ -7,6 +7,8 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.geometry.Pos?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.harlequin.CharacterSelectController"
@@ -16,8 +18,13 @@
         <!-- Character 1 - Blue Circle -->
         <StackPane fx:id="blueCircleCardStack" onMouseClicked="#selectCharacter" >
             <Rectangle width="150" height="200" arcWidth="20" arcHeight="20" fill="WHITE"/>
-            <Circle radius="40" fill="BLUE"/>
+            <ImageView fx:id="blueCircleImageView" fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="@../harlequin/img/CrowAnimations/crow_idle.png" />
+                </image>
+            </ImageView>
         </StackPane>
+
 
         <!-- Character 2 - ??? -->
         <StackPane>

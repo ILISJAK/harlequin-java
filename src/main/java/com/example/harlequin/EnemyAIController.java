@@ -4,15 +4,14 @@ import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.Effect;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.util.Duration;
 
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class EnemyAIController implements EnemyProvider {
     private final GameController gameController;
@@ -42,32 +41,74 @@ public class EnemyAIController implements EnemyProvider {
         }
     }
     public void spawnEnemy() {
-        int baseHealth = 30;
-        int baseAttack = 25;
-        int baseDefense = 1;
-        double baseSpeed = 1.5;
-        double baseRadius = 50;
+        EnemyDatabase enemyDatabase = EnemyDatabase.getInstance();
+
+        List<String> enemyTypeNames = new ArrayList<>(enemyDatabase.getEnemyTypes());
+        String randomEnemyTypeName = enemyTypeNames.get(new Random().nextInt(enemyTypeNames.size()));
+        Enemy enemyTemplate = enemyDatabase.getEnemyType(randomEnemyTypeName);
+
+        int baseHealth = enemyTemplate.getMaxHealth();
+        double baseAttack = enemyTemplate.getAttackPower();
+        double baseDefense = enemyTemplate.getDefense();
+        double baseSpeed = enemyTemplate.getMovementSpeed();
+        double baseRadius = 25;
+        double baseCritChance = enemyTemplate.getCritChance();
+        double baseCritMultiplier = enemyTemplate.getCritMultiplier();
 
         int k = 5;  // adjust this value to change the scaling
-        int health = (int) (baseHealth + (gameController.getGameStateManager().getCurrentWave()*k));
-        int attack = (int) (baseAttack + (gameController.getGameStateManager().getCurrentWave()*k));
-        int defense = (int) (baseDefense + (gameController.getGameStateManager().getCurrentWave()*k));
+        int currentWave = gameController.getGameStateManager().getCurrentWave();
+        int health = (int) (baseHealth + currentWave*k);
+        int attack = (int) (baseAttack + currentWave*k);
+        int defense = (int) (baseDefense + currentWave*k);
         double speed = baseSpeed;
         double radius = baseRadius;
+        double critChance = baseCritChance;
+        double critMultiplier = baseCritMultiplier;
 
-        Enemy enemy = new Enemy("Circle", 20, health, attack, defense, speed, radius, 0.1,1.2);
+        // Create a new Enemy instance with the scaled attributes
+        Enemy enemy = new Enemy(enemyTemplate.getName(), currentWave, health, attack, defense, speed, radius, critChance, critMultiplier, enemyTemplate.getEnemyMoveLeftAnimation(), enemyTemplate.getEnemyMoveRightAnimation());
+
         double speedVariation = 0.2;  // 20% variation
         enemy.setMovementSpeed(enemy.getMovementSpeed() * (1 + Math.random() * speedVariation - speedVariation / 2));
 
+        double spawnMargin = 100;  // adjust this value as needed
+        double spawnX = 0;
+        double spawnY = 0;
+        int side = new Random().nextInt(4);
+
+        switch (side) {
+            case 0:  // top side
+                spawnX = Math.random() * screenWidth;
+                spawnY = -spawnMargin;
+                break;
+            case 1:  // right side
+                spawnX = screenWidth + spawnMargin;
+                spawnY = Math.random() * screenHeight;
+                break;
+            case 2:  // bottom side
+                spawnX = Math.random() * screenWidth;
+                spawnY = screenHeight + spawnMargin;
+                break;
+            case 3:  // left side
+                spawnX = -spawnMargin;
+                spawnY = Math.random() * screenHeight;
+                break;
+        }
+
+        // Create the enemy ImageView
+        ImageView enemyImageView = gameController.getGameGraphics().createEnemyImageView(enemy);
+
         Circle enemyCircle = enemy.getSprite();  // Example size
         enemyCircle.setFill(Color.RED);  // Making enemy red for distinction
+        enemyCircle.setOpacity(0.1);
         double margin = 60;
-        enemyCircle.setTranslateX(margin + Math.random() * (screenWidth - 2 * margin));
-        enemyCircle.setTranslateY(margin + Math.random() * (screenHeight - 2 * margin));
+        enemyCircle.setTranslateX(spawnX);
+        enemyCircle.setTranslateY(spawnY);
 
         enemyMap.put(enemy, enemyCircle);
 
         ((Pane) player.getSprite().getParent()).getChildren().add(enemyCircle);
+        gamePane.getChildren().add(enemyImageView);
         System.out.println("Spawned enemy at position: " + enemyCircle.getTranslateX() + ", " + enemyCircle.getTranslateY());
     }
 
@@ -79,6 +120,7 @@ public class EnemyAIController implements EnemyProvider {
         double dy = player.getSprite().getTranslateY() - enemyCircle.getTranslateY();
 
         double distance = Math.sqrt(dx * dx + dy * dy);
+        double angle = Math.atan2(dy, dx);
 
         // Normalize the direction vector (dx, dy)
         double moveX = speed * (dx / distance);
@@ -105,6 +147,26 @@ public class EnemyAIController implements EnemyProvider {
         // Check bounds for Y position
         if (potentialNewY - enemyCircle.getRadius() >= margin && potentialNewY + enemyCircle.getRadius() <= screenHeight - margin) {
             enemyCircle.setTranslateY(potentialNewY);
+        }
+
+        double playerX = player.getSprite().getTranslateX();
+        double playerY = player.getSprite().getTranslateY();
+        double enemyX = enemyCircle.getTranslateX();
+        double enemyY = enemyCircle.getTranslateY();
+
+        gameController.getGameGraphics().updateEnemyAnimation(enemy, playerX, playerY, enemyX, enemyY);
+
+        if (gameController.getGameGraphics() != null) {
+            ImageView enemyImageView = gameController.getGameGraphics().getEnemyImageView(enemy);
+            if (enemyImageView != null) {
+                enemyImageView.setX(enemyCircle.getTranslateX() - enemyImageView.getFitWidth() / 2);
+                enemyImageView.setY(enemyCircle.getTranslateY() - enemyImageView.getFitHeight() / 2);
+        //      enemyImageView.setRotate(Math.toDegrees(angle));
+            } else {
+                System.out.println("enemyImageView is null");
+            }
+        } else {
+            System.out.println("gameController or gameGraphics is null");
         }
 
         // If the enemy is too close to an edge, reposition it slightly inward
@@ -244,6 +306,7 @@ public class EnemyAIController implements EnemyProvider {
         if (enemy.getHealth() <= 0) {
             enemyMap.remove(enemy);
             ((Pane) player.getSprite().getParent()).getChildren().remove(enemyCircle);
+            gamePane.getChildren().remove(gameController.getGameGraphics().getEnemyImageView(enemy)); // remove enemy ImageView
             player.gainExperience(enemy.getExperienceValue());
             gameController.updatePlayerState();
 

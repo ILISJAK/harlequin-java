@@ -48,7 +48,13 @@ public class ProjectileAttackStrategy implements AttackStrategy {
         double normalizedDx = dx / distance;
         double normalizedDy = dy / distance;
 
-        Circle projectile = new Circle(player.getX(), player.getY(), PROJECTILE_RADIUS, Color.BLUE);
+        // Calculate the position above the player's head
+        double offsetX = normalizedDx * PROJECTILE_RADIUS;
+        double offsetY = normalizedDy * PROJECTILE_RADIUS;
+        double projectileX = player.getX() + offsetX * 2;
+        double projectileY = player.getY() + offsetY * 2;
+
+        Circle projectile = new Circle(projectileX, projectileY, PROJECTILE_RADIUS, Color.BLUE);
 
         gamePane.getChildren().add(projectile);
 

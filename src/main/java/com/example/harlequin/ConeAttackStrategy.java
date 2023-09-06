@@ -15,8 +15,8 @@ import java.util.Map;
 public class ConeAttackStrategy implements AttackStrategy {
     private Pane gamePane;  // The main game pane where everything is rendered
     private Player player;  // Reference to the player to get position, direction, etc.
-    private static final double CONE_RADIUS = 200;  // Example radius for the cone
-    private static final double CONE_ANGLE = 60;    // Angle of the cone
+    private double CONE_RADIUS;  // Example radius for the cone
+    private double CONE_ANGLE;    // Angle of the cone
     private EnemyAIController enemyAIController;
 
     public ConeAttackStrategy(Pane gamePane, Player player, EnemyAIController enemyAIController) {
@@ -138,5 +138,21 @@ public class ConeAttackStrategy implements AttackStrategy {
     @Override
     public void resetCooldown() {
         // This method can remain empty since the Weapon class is handling the cooldown
+    }
+
+    public double getCONE_ANGLE() {
+        return CONE_ANGLE;
+    }
+
+    public double getCONE_RADIUS() {
+        return CONE_RADIUS;
+    }
+
+    public void setCONE_ANGLE(double CONE_ANGLE) {
+        this.CONE_ANGLE = CONE_ANGLE;
+    }
+
+    public void setCONE_RADIUS(double CONE_RADIUS) {
+        this.CONE_RADIUS = CONE_RADIUS;
     }
 }

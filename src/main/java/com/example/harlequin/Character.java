@@ -17,6 +17,8 @@ public abstract class Character {
     protected double critMultiplier; // multiplier for critical hit damage
     private final Random random = new Random();
     protected boolean lastAttackWasCritical;
+    private boolean isMoving = false;
+    private boolean isFacingLeft = false;
 
     protected Circle sprite; // graphical representation
 
@@ -114,6 +116,12 @@ public abstract class Character {
     public void setLastAttackWasCritical(boolean lastAttackWasCritical) {
         this.lastAttackWasCritical = lastAttackWasCritical;
     }
+    public void setMoving(boolean moving) {
+        isMoving = moving;
+    }
+    public void setFacingLeft(boolean facingLeft) {
+        isFacingLeft = facingLeft;
+    }
 
     // getters
     public Circle getSprite() {
@@ -150,4 +158,11 @@ public abstract class Character {
         return critMultiplier;
     }
 
+    public boolean getFacingLeft() {
+        return isFacingLeft;
+    }
+
+    public boolean getMoving() {
+        return isMoving;
+    }
 }

@@ -31,13 +31,14 @@ public class GameController {
     @FXML
     private Pane gamePane;
     @FXML
-    private Rectangle healthBar, healthBarBackground;
+    private Rectangle healthBar, healthBarBackground, xpBar, xpBarBackground;
     @FXML
     private Label playerLevelLabel, xpLabel, waveLabel, timerLabel, healthLabel;
 
     private Player player;
     private EnemyAIController enemyAIController;
     private GameStateManager gameStateManager;
+    private GameGraphics gameGraphics;
 
     private boolean gamePaused = false;
     private List<Item> allUpgrades;
@@ -61,7 +62,6 @@ public class GameController {
         @Override
         public void handle(long now) {
             System.out.println("Game loop running...");
-
             double speed = player.getMovementSpeed();
             System.out.println("Player speed: " + speed);
             if (activeKeys.contains(KeyCode.W) && player.getSprite().getTranslateY() - speed - player.getSprite().getRadius() > 0) {
@@ -80,11 +80,13 @@ public class GameController {
             enemyAIController.moveEnemies();
             player.attack();
             updatePlayerState();
+            gameGraphics.update();
         }
     };
 
     private void pauseGame() {
         gameLoop.stop();
+        gameStateManager.stopEnemySpawnTimeline();
         gamePaused = true;
         background = new Rectangle(SCREEN_WIDTH, SCREEN_HEIGHT, Color.BLACK);
         background.setOpacity(0.5);
@@ -92,6 +94,7 @@ public class GameController {
     }
     private void resumeGame() {
         gameLoop.start();
+        gameStateManager.resumeEnemySpawnTimeline();
         gamePaused = false;
         gamePane.getChildren().remove(background);
         gamePane.requestFocus();
@@ -100,29 +103,26 @@ public class GameController {
     private void displayUpgradeOptions() {
         List<Item> availableUpgrades = getAvailableUpgrades();
 
-        // Create a new pane to hold the upgrade options
         upgradePane = new VBox(10);
         upgradePane.setAlignment(Pos.CENTER);
         upgradePane.setStyle("-fx-background-color: #B0C4DE; -fx-padding: 20; -fx-border-color: black; -fx-border-width: 2;");
 
-        // Add header
         Label header = new Label("Level up!");
         header.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 24;");
         upgradePane.getChildren().add(header);
 
-        // Create a clickable area for each available upgrade
         for (Item upgrade : availableUpgrades) {
             ImageView imageView = new ImageView(upgrade.getImage());
-            imageView.setFitWidth(100);  // adjust the size as needed
-            imageView.setFitHeight(100);  // adjust the size as needed
+            imageView.setFitWidth(100);
+            imageView.setFitHeight(100);
 
             Label label = new Label(upgrade.getName() + "\n" + upgrade.getDescription());
             label.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 20; -fx-padding: 10;");
             label.setAlignment(Pos.CENTER_LEFT);
-            label.setPrefWidth(800);  // adjust the width as needed
+            label.setPrefWidth(800);
             label.setMouseTransparent(true);
 
-            HBox hbox = new HBox(10);  // 10 is the spacing between the children
+            HBox hbox = new HBox(10);
             hbox.setPrefWidth(upgradePane.getPrefWidth());
             hbox.setAlignment(Pos.CENTER_LEFT);
             hbox.setPadding(new Insets(5));
@@ -140,34 +140,25 @@ public class GameController {
             });
 
             hbox.setOnMouseClicked(event -> {
-                // Apply the chosen upgrade
                 upgrade.apply();
-                // Resume the game
                 resumeGame();
-                // Close the upgrade pane
                 gamePane.getChildren().remove(upgradePane);
-                upgradePane.layoutXProperty().unbind();
-                upgradePane.layoutYProperty().unbind();
+                upgradePane.translateXProperty().unbind();
+                upgradePane.translateYProperty().unbind();
             });
 
             upgradePane.getChildren().add(hbox);
         }
 
-        // Add footer
         Label footer = new Label("Increase your luck for a chance to get 4 upgrades.");
         footer.setStyle("-fx-font-family: 'Pixeled'; -fx-font-size: 24;");
         upgradePane.getChildren().add(footer);
 
-        // Add the upgrade pane to the game pane
         gamePane.getChildren().add(upgradePane);
 
-        // Set the position of the upgrade pane
-        Platform.runLater(() -> {
-            upgradePane.setLayoutX(gamePane.getWidth() / 2 - upgradePane.getWidth() / 2);
-            upgradePane.setLayoutY(gamePane.getHeight() / 2 - upgradePane.getHeight() / 2);
-        });
+        upgradePane.translateXProperty().bind(gamePane.widthProperty().subtract(upgradePane.widthProperty()).divide(2));
+        upgradePane.translateYProperty().bind(gamePane.heightProperty().subtract(upgradePane.heightProperty()).divide(2));
 
-        // Pause the game
         pauseGame();
     }
 
@@ -195,8 +186,8 @@ public class GameController {
 
     private void displayDamage(double damage) {
         Label damageLabel = new Label("-" + String.valueOf(damage));
-        damageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 24;");
-        damageLabel.setFont(Font.font("Pixeled", 24));
+        damageLabel.setFont(customFont);
+        damageLabel.setStyle("-fx-text-fill: red;");
         damageLabel.setTranslateX(player.getSprite().getTranslateX());
         damageLabel.setTranslateY(player.getSprite().getTranslateY() - 20); // Slightly above the player
 
@@ -220,27 +211,26 @@ public class GameController {
             gameStateManager.stopEnemySpawnTimeline();
 
             Label gameOverLabel = new Label("GAME OVER");
-            gameOverLabel.setStyle("-fx-text-fill: red; -fx-font-size: 48;");
+            gameOverLabel.setFont(customFont);
+            gameOverLabel.setStyle("-fx-text-fill: red;");
             gameOverLabel.setAlignment(Pos.CENTER);
-            gameOverLabel.layoutXProperty().bind(gamePane.widthProperty().subtract(gameOverLabel.widthProperty()).divide(2));
-            gameOverLabel.layoutYProperty().bind(gamePane.heightProperty().subtract(gameOverLabel.heightProperty()).divide(2));
+            gamePane.getChildren().add(gameOverLabel);
 
-            ((Pane) player.getSprite().getParent()).getChildren().add(gameOverLabel);
-            gamePane.requestLayout();
+            gameOverLabel.translateXProperty().bind(gamePane.widthProperty().subtract(gameOverLabel.widthProperty()).divide(2));
+            gameOverLabel.translateYProperty().bind(gamePane.heightProperty().subtract(gameOverLabel.heightProperty()).divide(2));
 
-            gameOverLabel.layoutXProperty().unbind();
-            gameOverLabel.layoutYProperty().unbind();
         }
     }
+
     public void updatePlayerState(){
         updateXpLabel();
         updatePlayerLevelLabel();
+        updateXpBar();
         if (player.hasLeveledUp()) {
             displayUpgradeOptions();
             player.setHasLeveledUp(false);
         }
     }
-
 
     private List<Item> getAvailableUpgrades() {
         int numberOfUpgradesToOffer = 3;
@@ -257,6 +247,11 @@ public class GameController {
     private void updateXpLabel(){
         xpLabel.setText("XP: " + player.getExperience() + "/" + player.getXpNeeded());
     }
+    private void updateXpBar() {
+        double percentageXp = (double) player.getExperience() / player.getXpNeeded();
+        xpBar.setWidth(xpBarBackground.getWidth() * percentageXp);
+    }
+
     private void updatePlayerLevelLabel() {
         playerLevelLabel.setText("Player Level: " + player.getLevel());
     }
@@ -280,17 +275,21 @@ public class GameController {
             }
 
             // Adjust the layout of the UI elements
+            xpBarBackground.setLayoutX(10);  // 10 pixels from the left
+            xpBarBackground.setLayoutY(10);  // 10 pixels from the top
+            xpBar.setLayoutX(xpBarBackground.getLayoutX());
+            xpBar.setLayoutY(xpBarBackground.getLayoutY());
             healthBarBackground.setLayoutX(screenWidth / 2 - 100);  // Center the health bar
             healthBarBackground.setLayoutY(screenHeight - 20);  // 20 pixels from the bottom
             healthBar.setLayoutX(healthBarBackground.getLayoutX());
             healthBar.setLayoutY(healthBarBackground.getLayoutY());
-            playerLevelLabel.setLayoutX(screenWidth - 220);
+            playerLevelLabel.setLayoutX(screenWidth - 420);
             playerLevelLabel.setLayoutY(20);
-            xpLabel.setLayoutX(screenWidth - 220);
+            xpLabel.setLayoutX(screenWidth - 420);
             xpLabel.setLayoutY(50);
-            waveLabel.setLayoutX(screenWidth - 220);
+            waveLabel.setLayoutX(screenWidth - 420);
             waveLabel.setLayoutY(80);
-            timerLabel.setLayoutX(screenWidth - 220);
+            timerLabel.setLayoutX(screenWidth - 420);
             timerLabel.setLayoutY(110);
 
             try {
@@ -305,7 +304,8 @@ public class GameController {
                 System.err.println(e.getMessage());
             }
 
-            player = new Player("Hero", 1, 100, 5, 15, 2, 50, 0.1, 2);
+            player = new Player("Hero", 1, 100, 5, 15, 2, 35, 0.1, 2);
+            player.getSprite().setOpacity(0.1);
             ((Pane) healthBar.getParent()).getChildren().add(player.getSprite());
             player.getSprite().setTranslateX(screenWidth / 2);
             player.getSprite().setTranslateY(screenHeight / 2);
@@ -322,6 +322,16 @@ public class GameController {
 
             gameStateManager = new GameStateManager(this);
             enemyAIController = new EnemyAIController(player, enemyMap, (Pane) player.getSprite().getParent(), gameStateManager.getCurrentWave(), screenWidth, screenHeight, this);
+            EnemyDatabase enemyDatabase = EnemyDatabase.getInstance();
+            enemyDatabase.addEnemyType("Tormented", new Enemy("Tormented", 20, 30, 22, 1, 1.5, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0018_Lucifer_Skeleton_Grunt_Pixel_Art/Left/Png/SkeletonWithSwordLefttRun.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0018_Lucifer_Skeleton_Grunt_Pixel_Art/Right/Png/SkeletonWithSwordRightRun.png").toExternalForm())));
+            enemyDatabase.addEnemyType("Acolyte", new Enemy("Acolyte", 20, 20, 25, 0, 1.65, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0013_Lucifer_Cultist_Pixel_Art/Left/Png/CultistLeftWalk.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0013_Lucifer_Cultist_Pixel_Art/Right/Png/CultistRightWalk.png").toExternalForm())));
+            enemyDatabase.addEnemyType("Scaled Behemoth", new Enemy("Scaled Behemoth", 20, 300, 23, 1, 1.4, 70, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0016_Lucifer_Goblin_Beast_Pixel_Art/Left/Png/GoblinBeastLeftWalk.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0016_Lucifer_Goblin_Beast_Pixel_Art/Right/Png/GoblinBeastRightWalk.png").toExternalForm())));
+            enemyDatabase.addEnemyType("Mauler", new Enemy("Mauler", 20, 15, 28, 1, 1.85, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0015_Lucifer_Goblin_Berserker_Pixel_Art/Left/Png/GoblinLeftRun.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0015_Lucifer_Goblin_Berserker_Pixel_Art/Right/Png/GoblinRightRun.png").toExternalForm())));
+        //  enemyDatabase.addEnemyType("Chiroptera", new Enemy("Chiroptera", 20, 230, 27, 1, 1.65, 70, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0017_Lucifer_Goblin_Rider_Pixel_Art/Left/Png/GoblinRiderLeftMove.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0017_Lucifer_Goblin_Rider_Pixel_Art/Right/Png/GoblinRiderRightMove.png").toExternalForm()), 4, 320, 80));
+            enemyDatabase.addEnemyType("Soulless", new Enemy("Soulless", 20, 35, 20, 1, 1.5, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0018_Lucifer_Skeleton_Grunt_Pixel_Art/Left/Png/SkeletonWithSwordLefttRun.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0018_Lucifer_Skeleton_Grunt_Pixel_Art/Right/Png/SkeletonWithSwordRightRun.png").toExternalForm())));
+        //  enemyDatabase.addEnemyType("Marrowsworn", new Enemy("Marrowsworn", 20, 260, 25, 1, 1.5, 70, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0020_Lucifer_Skeleton_Ancient_Pixel_Art/Left/Png/AncientSkeletonLeftWalk.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0020_Lucifer_Skeleton_Ancient_Pixel_Art/Right/Png/AncientSkeletonRightWalk.png").toExternalForm()), 8, 768, 96));
+            enemyDatabase.addEnemyType("Squire", new Enemy("Squire", 20, 30, 19, 2, 1.3, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0009_Lucifer_Warrior_Pixel_Art/Left/Png/WarriorLeftWalk.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0009_Lucifer_Warrior_Pixel_Art/Right/Png/WarriorRightWalk.png").toExternalForm())));
+            enemyDatabase.addEnemyType("Fanatic", new Enemy("Fanatic", 20, 25, 23, 1, 1.65, 50, 0.1, 1.2, new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0010_Lucifer_Necromancer_Pixel_Art/Left/Png/NecromancerLeftRun.png").toExternalForm()), new Image(getClass().getResource("/com/example/harlequin/img/Foozle_2DC0010_Lucifer_Necromancer_Pixel_Art/Right/Png/NecromancerRightRun.png").toExternalForm())));
 
             Weapon coneWeapon = new Weapon("ConeTest", "Conetest", 10, new ConeAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), () -> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
             Weapon projectileWeapon = new Weapon("ProjectileTest", "ProjectileTest", 10, new ProjectileAttackStrategy((Pane) player.getSprite().getParent(), player, enemyAIController), () -> player.setLevel(player.getLevel()), 6, new Image(getClass().getResourceAsStream("/com/example/harlequin/img/dead-eye.png")));
@@ -354,6 +364,7 @@ public class GameController {
                 System.out.println("gamePane is null.");
             }
 
+            initGameGraphics();
             gameLoop.start();
             // Initialize wave-related labels and start the first wave
             updateWaveLabel();
@@ -363,11 +374,39 @@ public class GameController {
         }
     }
 
+    public void initGameGraphics(){
+        gameGraphics = new GameGraphics(screenWidth, screenHeight, this);
+    }
+
     public void handleKeyPressed(KeyEvent event) {
         activeKeys.add(event.getCode());
+
+        // Update player animation based on movement direction
+        boolean moving = true;
+        boolean facingLeft = false;
+
+        if (event.getCode() == KeyCode.W || event.getCode() == KeyCode.S || event.getCode() == KeyCode.A || event.getCode() == KeyCode.D) {
+            if (activeKeys.contains(KeyCode.A)) {
+                facingLeft = true;
+            }
+        } else {
+            moving = false;
+        }
+
+        gameGraphics.updatePlayerAnimation(moving, facingLeft);
     }
     public void handleKeyReleased(KeyEvent event) {
         activeKeys.remove(event.getCode());
+
+        // Update player animation based on movement direction
+        boolean moving = !activeKeys.isEmpty();
+        boolean facingLeft = false;
+
+        if (moving && activeKeys.contains(KeyCode.A)) {
+            facingLeft = true;
+        }
+
+        gameGraphics.updatePlayerAnimation(moving, facingLeft);
     }
 
     public EnemyAIController getEnemyAIController() {
@@ -378,8 +417,23 @@ public class GameController {
         return gameStateManager;
     }
 
+    public GameGraphics getGameGraphics() {
+        return gameGraphics;
+    }
+
     public Pane getGamePane() {
         return gamePane;
     }
-}
 
+    public Player getPlayer() {
+        return player;
+    }
+
+    public static double getScreenHeight() {
+        return SCREEN_HEIGHT;
+    }
+
+    public static double getScreenWidth() {
+        return SCREEN_WIDTH;
+    }
+}

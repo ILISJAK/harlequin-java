@@ -12,6 +12,8 @@
 
     <Rectangle fx:id="healthBarBackground" fill="BLACK" width="200" height="10"/>
     <Rectangle fx:id="healthBar" fill="GREEN" width="200" height="10"/>
+    <Rectangle fx:id="xpBarBackground" fill="GREY" width="800" height="10" layoutY="10"/>
+    <Rectangle fx:id="xpBar" fill="#FF66B2" width="0" height="10" layoutY="10"/>
     <Label fx:id="playerLevelLabel" text="Player Level: 1"/>
     <Label fx:id="xpLabel" text="XP: 0/100"/>
     <Label fx:id="waveLabel" text="Wave: 1"/>
